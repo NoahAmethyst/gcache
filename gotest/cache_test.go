@@ -74,5 +74,42 @@ func Test_PutWithExpire(t *testing.T) {
 
 		t.Logf("key:%v value:%v,expireAt:%s", k, v, exS)
 	}
+}
 
+func Test_GetKey(t *testing.T) {
+	max := 20000
+	localCache := gcache.NewCache[int](max, 10)
+
+	var wait sync.WaitGroup
+
+	for i := 0; i < max*2; i++ {
+		wait.Add(1)
+		go func(k int, v string) {
+			defer wait.Done()
+			localCache.Put(k, v, time.Duration(max*2-i)*time.Millisecond)
+		}(i, strconv.Itoa(i))
+	}
+
+	wait.Wait()
+
+	start := time.Now().UnixMilli()
+
+	keys := localCache.Keys()
+	for _, k := range keys {
+		wait.Add(1)
+		go func(_k int) {
+			defer wait.Done()
+			if v, b := localCache.Get(_k); !b {
+				t.Logf("key:%v not exist", _k)
+			} else {
+				t.Logf("key:%v,value:%v", _k, v)
+			}
+		}(k)
+	}
+
+	wait.Wait()
+
+	end := time.Now().UnixMilli()
+
+	t.Logf("consume: %dms", end-start)
 }
