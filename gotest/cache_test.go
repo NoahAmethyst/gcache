@@ -76,7 +76,7 @@ func Test_PutWithExpire(t *testing.T) {
 	}
 }
 
-func Test_GetKey(t *testing.T) {
+func Test_ConcurrentGetKey(t *testing.T) {
 	max := 20000
 	localCache := gcache.NewCache[int](max, 10)
 
@@ -99,11 +99,7 @@ func Test_GetKey(t *testing.T) {
 		wait.Add(1)
 		go func(_k int) {
 			defer wait.Done()
-			if v, b := localCache.Get(_k); !b {
-				t.Logf("key:%v not exist", _k)
-			} else {
-				t.Logf("key:%v,value:%v", _k, v)
-			}
+			_, _ = localCache.Get(_k)
 		}(k)
 	}
 
