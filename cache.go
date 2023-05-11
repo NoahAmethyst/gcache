@@ -15,10 +15,15 @@ type cache[K int | int64 | float64 | string] struct {
 	sync.RWMutex
 }
 
+// NewCache init a Cache object to save your data
+// You can specify [int | int64 | float64 | string] type as your key type,but can't specify multi types.
+// option[0] is max data size you will save in cache if the value not set or not greater than zero, the cache will not be lru.
+// option[1] set the strategy that free up how many data space when data size greater than max data size you set.
+// WARN:refuse to  set option[0] is not a good ideal.
 func NewCache[K int | int64 | float64 | string](option ...int) *Cache[K] {
 	_max := 0
 	_fs := float64(0)
-	if len(option) > 0 {
+	if len(option) > 0 && option[0] > 0 {
 		_max = option[0]
 	}
 	if len(option) > 1 {

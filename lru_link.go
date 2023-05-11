@@ -2,6 +2,8 @@ package gcache
 
 import "sync"
 
+// lruLink a linklist that save active keys sorted by activity degree.
+// The more in front, the longer that  haven't been used.
 type lruLink[V int | int64 | float64 | string] struct {
 	head *node[V]
 	sync.RWMutex
@@ -12,6 +14,8 @@ type node[V int | int64 | float64 | string] struct {
 	next *node[V]
 }
 
+// flush add new value in the list tail or switch old key from the last index to tail
+// Make the list sorted by active degree and all values are unique in the list
 func (l *lruLink[V]) flush(v V) {
 	l.Lock()
 	defer l.Unlock()
@@ -44,6 +48,7 @@ func (l *lruLink[V]) flush(v V) {
 	}
 }
 
+// popHead return the head value (longest key haven't been used) and delete it
 func (l *lruLink[V]) popHead() (V, bool) {
 	l.RLock()
 	defer l.RUnlock()
@@ -56,6 +61,7 @@ func (l *lruLink[V]) popHead() (V, bool) {
 	return v, true
 }
 
+// remove remove specific value from list
 func (l *lruLink[V]) remove(v V) {
 	l.Lock()
 	defer l.Unlock()
