@@ -64,14 +64,18 @@ func NewCache[K int | int64 | float64 | string](option ...int) *Cache[K] {
 		lru: &lruLink[K]{},
 	}
 
-	go func() {
+	go func(c *Cache[K]) {
 		for {
+			if c == nil || c.cache == nil {
+				continue
+			}
 			select {
 			case k := <-_cache.cache.ex:
 				_cache.del(k)
 			}
+
 		}
-	}()
+	}(_cache)
 
 	return _cache
 
