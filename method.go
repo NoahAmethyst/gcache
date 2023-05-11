@@ -1,14 +1,32 @@
 package gcache
 
+import "time"
+
 // Put save a new k-v data whether it is existing.
 // If it existed in cache before then update it.
 // flush the lru list to make the key in the tail of lru list cause you use it.
-func (c *Cache[K]) Put(k K, v interface{}) {
+// Use NotExpire the key will not be expired
+// ex is an option param which set key lifetime and only the first one value is valid
+func (c *Cache[K]) Put(k K, v interface{}, ex ...time.Duration) {
 	c.cache.Lock()
 	defer c.eliminate(c.cache.fs)
 	defer c.cache.Unlock()
 	defer c.lru.flush(k)
-	c.cache.data[k] = v
+	_item := &item{
+		v: v,
+	}
+	if len(ex) > 0 {
+		if ex[0] == NotExpire {
+			_item.expireAt = NoExpire
+		} else {
+			expireAt := time.Now().Add(ex[0])
+			_item.expireAt = expireAt
+		}
+
+	} else {
+		_item.expireAt = NoExpire
+	}
+	c.cache.data[k] = _item
 	c.cache.size = len(c.cache.data)
 }
 
@@ -20,9 +38,26 @@ func (c *Cache[K]) Get(k K) (interface{}, bool) {
 	defer c.cache.RUnlock()
 	v, ok := c.cache.data[k]
 	if ok {
+		if v.expireAt != NoExpire && v.expireAt.Before(time.Now()) {
+			go func() {
+				c.cache.ex <- k
+			}()
+			return nil, false
+		}
 		c.lru.flush(k)
+		return v.v, ok
 	}
-	return v, ok
+	return nil, ok
+}
+
+func (c *Cache[K]) ExpireAt(k K) (time.Time, bool) {
+	c.cache.RLock()
+	defer c.cache.RUnlock()
+	v, ok := c.cache.data[k]
+	if !ok {
+		return NoExpire, ok
+	}
+	return v.expireAt, ok
 }
 
 // Keys return all keys saved in the cache.
@@ -31,7 +66,13 @@ func (c *Cache[K]) Keys() []K {
 	c.cache.RLock()
 	defer c.cache.RUnlock()
 	ks := make([]K, 0, len(c.cache.data))
-	for k := range c.cache.data {
+	for k, v := range c.cache.data {
+		if v.expireAt != NoExpire && v.expireAt.Before(time.Now()) {
+			go func() {
+				c.cache.ex <- k
+			}()
+			continue
+		}
 		ks = append(ks, k)
 	}
 	return ks
@@ -40,15 +81,21 @@ func (c *Cache[K]) Keys() []K {
 // Del delete keys from cache.
 // remove keys from lru list which key is valid.
 func (c *Cache[K]) Del(ks ...K) {
-	c.cache.Lock()
-	defer c.cache.Unlock()
 	if l := len(ks); l > 0 {
 		for i := 0; i < l; i++ {
-			if _, ok := c.cache.data[ks[i]]; ok {
-				delete(c.cache.data, ks[i])
-				c.lru.remove(ks[i])
-			}
+			c.del(ks[i])
 		}
+	}
+}
+
+// del delete key from cache.
+// remove key from lru list which key is valid.
+func (c *Cache[K]) del(k K) {
+	c.cache.Lock()
+	defer c.cache.Unlock()
+	if _, ok := c.cache.data[k]; ok {
+		delete(c.cache.data, k)
+		c.lru.remove(k)
 		c.cache.size = len(c.cache.data)
 	}
 }
