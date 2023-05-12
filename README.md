@@ -8,6 +8,9 @@ gcache is a lightweight local cache project that supports concurrent access/read
 * Support expiration policy: Set expiration time, similar to Redis *Generic key structure. key data type can be specified. Currently, int int64 float64 string is supported 
 * value data uses interface, so data needs to be forcibly transferred
 
+
+**WARN:Data persistence is not supported**
+
 ---
 ### USE
 
