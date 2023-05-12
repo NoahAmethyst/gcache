@@ -2,12 +2,17 @@
 
 ---
 
-gcache is a lightweight local cache project that supports concurrent access/reading of k-v data
-* Concurrency: Test environment: macos 10 core memory limit of 2g. supports concurrent storage of 40,000- data per second and concurrent reading of 60,000 data per second.
-* Support elimination policy: Set the maximum data and space release percentage of a single cache server, and use the lru algorithm to eliminate the maximum data percentage when the trigger condition is met
-* Support expiration policy: Set expiration time, similar to Redis *Generic key structure. key data type can be specified. Currently, int int64 float64 string is supported 
-* value data uses interface, so data needs to be forcibly transferred
+#### gcache is a lightweight local caching solution that enables concurrent access and retrieval of key-value data.
 
+* Concurrency: In a test environment on macOS with 10 cores and a memory limit of 2GB, gcache can concurrently store up to 40,000 data per second and retrieve up to 100,000 data per second.
+
+* Support for eviction policies: gcache allows you to specify the maximum percentage of data and space that can be released by a single cache server. When the trigger condition is met, gcache uses the Least Recently Used (LRU) algorithm to eliminate the maximum data percentage.
+
+* Expiration policy support: Similar to Redis, gcache lets you set an expiration time for cached data.
+
+* Generic key structure: The key data type can be specified based on your requirements. Currently, int, int64, float64, and string are supported.
+
+* Value data uses interfaces, which means that data needs to be forcefully converted when transferred.
 
 **WARN:Data persistence is not supported**
 
