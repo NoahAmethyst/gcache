@@ -28,8 +28,6 @@ func Test_ConcurrentPut(t *testing.T) {
 
 	end := time.Now().UnixMilli()
 
-	time.Sleep(10 * time.Second)
-
 	t.Logf("data size:%d,consume:%dms", len(localCache.Keys()), end-start)
 }
 
@@ -77,7 +75,7 @@ func Test_PutWithExpire(t *testing.T) {
 }
 
 func Test_ConcurrentGetKey(t *testing.T) {
-	max := 20000
+	max := 25000
 	localCache := gcache.NewCache[int](max, 10)
 
 	var wait sync.WaitGroup

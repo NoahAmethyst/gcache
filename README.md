@@ -1,7 +1,14 @@
 # GCache
 
-simple local cache with lru strategy
+---
 
+gcache is a lightweight local cache project that supports concurrent access/reading of k-v data
+* Concurrency: Test environment: macos 10 core memory limit of 2g. supports concurrent storage of 40,000- data per second and concurrent reading of 60,000 data per second.
+* Support elimination policy: Set the maximum data and space release percentage of a single cache server, and use the lru algorithm to eliminate the maximum data percentage when the trigger condition is met
+* Support expiration policy: Set expiration time, similar to Redis *Generic key structure. key data type can be specified. Currently, int int64 float64 string is supported 
+* value data uses interface, so data needs to be forcibly transferred
+
+---
 ### USE
 
 ```go
