@@ -7,7 +7,7 @@ import "time"
 // flush the lru list to make the key in the tail of lru list cause you use it.
 // Use NotExpire the key will not be expired
 // ex is an option param which set key lifetime and only the first one value is valid
-func (c *Cache[K]) Put(k K, v interface{}, ex ...time.Duration) {
+func (c *Cache[K]) Put(k K, v any, ex ...time.Duration) {
 	c.cache.Lock()
 	defer c.eliminate(c.cache.fs)
 	defer c.cache.Unlock()
@@ -33,7 +33,7 @@ func (c *Cache[K]) Put(k K, v interface{}, ex ...time.Duration) {
 // Get query data by the key you set.
 // If not exist will return false in second return value.
 // flush the lru list to make the key in the tail of lru list cause you use it.
-func (c *Cache[K]) Get(k K) (interface{}, bool) {
+func (c *Cache[K]) Get(k K) (any, bool) {
 	c.cache.RLock()
 	defer c.cache.RUnlock()
 	v, ok := c.cache.data[k]

@@ -12,7 +12,7 @@
 
 * Generic key structure: The key data type can be specified based on your requirements. Currently, int, int64, float64, and string are supported.
 
-* Value data uses interfaces, which means that data needs to be forcefully converted when transferred.
+* Value data uses any(equal with interface), which means that data needs to be forcefully converted when transferred.
 
 **WARN:Data persistence is not supported**
 

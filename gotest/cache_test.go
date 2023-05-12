@@ -20,7 +20,7 @@ func Test_ConcurrentPut(t *testing.T) {
 		wait.Add(1)
 		go func(k int, v string) {
 			defer wait.Done()
-			localCache.Put(k, v, time.Duration(max*2-i)*time.Millisecond)
+			localCache.Put(k, v, time.Millisecond*time.Duration(max*2-k))
 		}(i, strconv.Itoa(i))
 	}
 
@@ -84,7 +84,7 @@ func Test_ConcurrentGetKey(t *testing.T) {
 		wait.Add(1)
 		go func(k int, v string) {
 			defer wait.Done()
-			localCache.Put(k, v, time.Duration(max*2-i)*time.Millisecond)
+			localCache.Put(k, v, time.Duration(max*2-k)*time.Millisecond)
 		}(i, strconv.Itoa(i))
 	}
 
@@ -97,7 +97,9 @@ func Test_ConcurrentGetKey(t *testing.T) {
 		wait.Add(1)
 		go func(_k int) {
 			defer wait.Done()
-			_, _ = localCache.Get(_k)
+			if v, ok := localCache.Get(_k); ok {
+				_ = v
+			}
 		}(k)
 	}
 

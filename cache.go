@@ -26,7 +26,7 @@ type cache[K int | int64 | float64 | string] struct {
 }
 
 type item struct {
-	v        interface{}
+	v        any
 	expireAt time.Time
 }
 
