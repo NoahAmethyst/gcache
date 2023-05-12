@@ -75,7 +75,7 @@ func Test_PutWithExpire(t *testing.T) {
 }
 
 func Test_ConcurrentGetKey(t *testing.T) {
-	max := 25000
+	max := 50000
 	localCache := gcache.NewCache[int](max, 10)
 
 	var wait sync.WaitGroup

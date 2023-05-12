@@ -4,7 +4,7 @@
 
 #### gcache is a lightweight local caching solution that enables concurrent access and retrieval of key-value data.
 
-* Concurrency: In a test environment on macOS with 10 cores and a memory limit of 2GB, gcache can concurrently store up to 40,000 data per second and retrieve up to 100,000 data per second.
+* Concurrency: In a test environment on macOS with 10 cores and a memory limit of 2GB, gcache can concurrently store up to 40,000 data per second and retrieve up to 60,000 data per second.
 
 * Support for eviction policies: gcache allows you to specify the maximum percentage of data and space that can be released by a single cache server. When the trigger condition is met, gcache uses the Least Recently Used (LRU) algorithm to eliminate the maximum data percentage.
 
