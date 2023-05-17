@@ -3,12 +3,12 @@ package gcache
 // del delete key from cache.
 // remove key from lru list which key is valid.
 func (c *Cache[K]) del(k K) {
-	c.cache.Lock()
-	defer c.cache.Unlock()
-	if _, ok := c.cache.data[k]; ok {
-		delete(c.cache.data, k)
+	c.singleCache.Lock()
+	defer c.singleCache.Unlock()
+	if _, ok := c.singleCache.data[k]; ok {
+		delete(c.singleCache.data, k)
 		c.lru.remove(k)
-		c.cache.size = len(c.cache.data)
+		c.singleCache.size = len(c.singleCache.data)
 	}
 }
 
@@ -18,26 +18,26 @@ func (c *Cache[K]) del(k K) {
 // Clear until cached data size less than max even if cache.fs is not a valid value(0-1)
 // WARN: if max you set is not greater than 0 this strategy won't be triggered
 func (c *Cache[K]) eliminate(fs float64) {
-	if c.cache.size <= c.cache.max || c.cache.max == 0 {
+	if c.singleCache.size <= c.max || c.max == 0 {
 		return
 	}
-	c.cache.Lock()
-	defer c.cache.Unlock()
+	c.singleCache.Lock()
+	defer c.singleCache.Unlock()
 
 	if fs > 0 {
-		for c.cache.size > c.cache.max {
-			for i := float64(0); i < float64(c.cache.max)*fs; i++ {
+		for c.singleCache.size > c.max {
+			for i := float64(0); i < float64(c.max)*fs; i++ {
 				if eldK, ok := c.lru.popHead(); ok {
-					delete(c.cache.data, eldK)
+					delete(c.singleCache.data, eldK)
 				}
 			}
-			c.cache.size = len(c.cache.data)
+			c.singleCache.size = len(c.singleCache.data)
 		}
 	} else {
-		for c.cache.size > c.cache.max {
+		for c.singleCache.size > c.max {
 			if eldK, ok := c.lru.popHead(); ok {
-				delete(c.cache.data, eldK)
-				c.cache.size = len(c.cache.data)
+				delete(c.singleCache.data, eldK)
+				c.singleCache.size = len(c.singleCache.data)
 			}
 		}
 	}
