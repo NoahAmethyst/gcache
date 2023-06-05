@@ -19,13 +19,13 @@ type Cache[K int | int64 | float64 | string] struct {
 	//store map relationship of cache nodes and hash
 	buckets map[uint32]*cache[K]
 	//max data size that will be stored in cache
-	max int
-	//percentage of max data size that will be free of
-	fs float64
 	//store all key and sort by recent used,for single cache
 	lru *lruLink[K]
 	//store all key and sort by recent used,for cache nodes
 	lruNodes map[uint32]*lruLink[K]
+	max      int
+	//percentage of max data size that will be free of
+	fs float64
 }
 
 type cache[K int | int64 | float64 | string] struct {
