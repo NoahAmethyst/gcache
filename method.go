@@ -11,7 +11,7 @@ func (c *Cache[K]) Put(k K, v any, ex ...time.Duration) {
 	c.singleCache.Lock()
 	defer c.eliminate(c.fs)
 	defer c.singleCache.Unlock()
-	defer c.lru.flush(k)
+	defer c.singleCache.lru.flush(k)
 	_item := &item{
 		v: v,
 	}
@@ -44,7 +44,7 @@ func (c *Cache[K]) Get(k K) (any, bool) {
 			}()
 			return nil, false
 		}
-		c.lru.flush(k)
+		c.singleCache.lru.flush(k)
 		return v.v, ok
 	}
 	return nil, ok

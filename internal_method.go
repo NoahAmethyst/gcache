@@ -7,7 +7,7 @@ func (c *Cache[K]) del(k K) {
 	defer c.singleCache.Unlock()
 	if _, ok := c.singleCache.data[k]; ok {
 		delete(c.singleCache.data, k)
-		c.lru.remove(k)
+		c.singleCache.lru.remove(k)
 		c.singleCache.size = len(c.singleCache.data)
 	}
 }
@@ -27,7 +27,7 @@ func (c *Cache[K]) eliminate(fs float64) {
 	if fs > 0 {
 		for c.singleCache.size > c.max {
 			for i := float64(0); i < float64(c.max)*fs; i++ {
-				if eldK, ok := c.lru.popHead(); ok {
+				if eldK, ok := c.singleCache.lru.popHead(); ok {
 					delete(c.singleCache.data, eldK)
 				}
 			}
@@ -35,7 +35,7 @@ func (c *Cache[K]) eliminate(fs float64) {
 		}
 	} else {
 		for c.singleCache.size > c.max {
-			if eldK, ok := c.lru.popHead(); ok {
+			if eldK, ok := c.singleCache.lru.popHead(); ok {
 				delete(c.singleCache.data, eldK)
 				c.singleCache.size = len(c.singleCache.data)
 			}

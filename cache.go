@@ -18,25 +18,30 @@ type Cache[K int | int64 | float64 | string] struct {
 	nodes []uint32
 	//store map relationship of cache nodes and hash
 	buckets map[uint32]*cache[K]
-	//max data size that will be stored in cache
-	//store all key and sort by recent used,for single cache
-	lru *lruLink[K]
 	//store all key and sort by recent used,for cache nodes
 	lruNodes map[uint32]*lruLink[K]
-	max      int
+	//max data size that will be stored in cache
+	max int
 	//percentage of max data size that will be free of
 	fs float64
 }
 
 type cache[K int | int64 | float64 | string] struct {
+	//saved data
 	data map[K]*item
-	ex   chan K
+	//store all key and sort by recent used,for single cache
+	lru *lruLink[K]
+	//expire channel which receive expired keys and delete it
+	ex chan K
+	//data size
 	size int
 	sync.RWMutex
 }
 
 type item struct {
-	v        any
+	//data value
+	v any
+	//expire time
 	expireAt time.Time
 }
 
@@ -65,12 +70,13 @@ func NewCache[K int | int64 | float64 | string](option ...int) *Cache[K] {
 	_cache := &Cache[K]{
 		singleCache: &cache[K]{
 			data: map[K]*item{},
+			lru:  &lruLink[K]{},
 			ex:   make(chan K),
 			size: 0,
 
 			RWMutex: sync.RWMutex{},
 		},
-		lru: &lruLink[K]{},
+
 		max: _max,
 		fs:  _fs,
 	}
