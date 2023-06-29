@@ -6,24 +6,27 @@ import (
 )
 
 const (
+	// NotExpire not expire
 	NotExpire time.Duration = -1
+	// threshold add bucket node when data size trigger threshold
+	threshold = 1024 * 8
+	// replicas virtual node magnification
+	replicas = 3
 )
 
 var NoExpire time.Time
 
 type Cache[K int | int64 | float64 | string] struct {
-	//single cache
-	singleCache *cache[K]
 	//store hash of cache nodes
 	nodes []uint32
 	//store map relationship of cache nodes and hash
 	buckets map[uint32]*cache[K]
-	//store all key and sort by recent used,for cache nodes
-	lruNodes map[uint32]*lruLink[K]
 	//max data size that will be stored in cache
 	max int
 	//percentage of max data size that will be free of
 	fs float64
+
+	sync.RWMutex
 }
 
 type cache[K int | int64 | float64 | string] struct {
@@ -66,34 +69,13 @@ func NewCache[K int | int64 | float64 | string](option ...int) *Cache[K] {
 		}
 
 	}
-
 	_cache := &Cache[K]{
-		singleCache: &cache[K]{
-			data: map[K]*item{},
-			lru:  &lruLink[K]{},
-			ex:   make(chan K),
-			size: 0,
-
-			RWMutex: sync.RWMutex{},
-		},
-
-		max: _max,
-		fs:  _fs,
+		RWMutex: sync.RWMutex{},
+		max:     _max,
+		fs:      _fs,
+		buckets: make(map[uint32]*cache[K]),
 	}
-
-	go func(c *Cache[K]) {
-		for {
-			if c == nil || c.singleCache == nil {
-				continue
-			}
-			select {
-			case k := <-_cache.singleCache.ex:
-				c.del(k)
-			}
-
-		}
-	}(_cache)
-
+	_cache.addNode()
 	return _cache
 
 }
@@ -102,6 +84,12 @@ func NewCache[K int | int64 | float64 | string](option ...int) *Cache[K] {
 // Data size not limit when  the value is not greater than zero
 func (c *Cache[K]) SetMax(max int) {
 	c.max = max
+	if max > threshold {
+		for i := threshold * len(c.nodes); i < max; {
+			c.addNode()
+			i = threshold * len(c.nodes)
+		}
+	}
 }
 
 // Max get singleCache current max
@@ -111,7 +99,11 @@ func (c *Cache[K]) Max() int {
 
 // Size get singleCache current data size
 func (c *Cache[K]) Size() int {
-	return c.singleCache.size
+	size := 0
+	for _, _cache := range c.buckets {
+		size += _cache.size
+	}
+	return size
 }
 
 func init() {

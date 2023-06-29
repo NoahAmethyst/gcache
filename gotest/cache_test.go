@@ -20,7 +20,7 @@ func Test_ConcurrentPut(t *testing.T) {
 		wait.Add(1)
 		go func(k int, v string) {
 			defer wait.Done()
-			localCache.Put(k, v, time.Millisecond*time.Duration(max*2-k))
+			localCache.Put(i, v, time.Millisecond*time.Duration(max*2-k))
 		}(i, strconv.Itoa(i))
 	}
 
