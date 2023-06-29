@@ -8,6 +8,8 @@
 
 * Support for eviction policies: gcache allows you to specify the maximum percentage of data and space that can be released by a single cache server. When the trigger condition is met, gcache uses the Least Recently Used (LRU) algorithm to eliminate the maximum data percentage.
 
+* Manager mutil cache nodes by consistent hash.  
+
 * Expiration policy support: Similar to Redis, gcache lets you set an expiration time for cached data.
 
 * Generic key structure: The key data type can be specified based on your requirements. Currently, int, int64, float64, and string are supported.
