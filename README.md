@@ -18,6 +18,8 @@
 
 **WARN:Data persistence is not supported**
 
+**WARN: Every time the max value is reset, if it is larger than the previous value, it will cause the corresponding node's cache data to be reallocated**
+
 ---
 ### USE
 
