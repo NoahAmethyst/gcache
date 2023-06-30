@@ -80,6 +80,7 @@ func (c *Cache[K]) addNode() {
 		return c.nodes[i] < c.nodes[j]
 	})
 
+	// start expire channel
 	go func(cache *cache[K]) {
 		for {
 			if cache == nil {
@@ -108,18 +109,23 @@ func (c *Cache[K]) reloadData(hash uint32) {
 
 	var _cache *cache[K]
 	currCache := c.buckets[hash]
+	// Get adjacent nodes
 	if index == 0 {
 		_cache = c.buckets[c.nodes[index+1]]
 	} else {
 		_cache = c.buckets[c.nodes[index-1]]
 	}
 
+	// reload data if key should be saved in new node
 	for k, v := range _cache.data {
 		if _, _hash := c.getNode(k); _hash == hash {
 			currCache.data[k] = v
 			currCache.size = len(currCache.data)
 			currCache.lru.flush(k)
-			_cache.del(k)
+
+			delete(_cache.data, k)
+			_cache.lru.remove(k)
+			_cache.size = len(_cache.data)
 		}
 	}
 }
@@ -157,6 +163,7 @@ func (c *Cache[K]) getNode(key K) (*cache[K], uint32) {
 	return c.buckets[c.nodes[idx]], c.nodes[idx]
 }
 
+// put save data in cache
 func (c *cache[K]) put(k K, v any, ex ...time.Duration) {
 	c.Lock()
 	defer c.Unlock()
@@ -178,6 +185,7 @@ func (c *cache[K]) put(k K, v any, ex ...time.Duration) {
 	c.size = len(c.data)
 }
 
+// get query data from cache by key
 func (c *cache[K]) get(k K) (any, bool) {
 	c.RLock()
 	defer c.RUnlock()
@@ -195,6 +203,7 @@ func (c *cache[K]) get(k K) (any, bool) {
 	return nil, ok
 }
 
+// expireAt query expire time
 func (c *cache[K]) expireAt(k K) (time.Time, bool) {
 	c.RLock()
 	defer c.RUnlock()
