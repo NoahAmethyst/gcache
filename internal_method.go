@@ -117,6 +117,8 @@ func (c *Cache[K]) reloadData(hash uint32) {
 	for k, v := range _cache.data {
 		if _, _hash := c.getNode(k); _hash == hash {
 			currCache.data[k] = v
+			currCache.size = len(currCache.data)
+			currCache.lru.flush(k)
 			_cache.del(k)
 		}
 	}
